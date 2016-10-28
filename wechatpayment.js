@@ -1,7 +1,6 @@
 var Jsonxml = require('./jsonxml');
 var Request = require('request');
 var crypto = require('crypto');
-var Jsonxml = require('./jsonxml');
 
 class WechatPayment{
 	constructor(config){
