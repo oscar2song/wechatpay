@@ -1,4 +1,4 @@
 .wechat
 node_modules
 .remote-sync.json
-.config.json
+config.json
