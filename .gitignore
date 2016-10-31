@@ -2,4 +2,3 @@
 node_modules
 .remote-sync.json
 config.json
-index.js
