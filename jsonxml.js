@@ -1,10 +1,11 @@
 var Xml2js = require('xml2js');
 
 module.exports = {
-	toXml:function(json){
+	toXml:function(rows){
 		var xmlRows = [];
-		for(var key in json){
-			xmlRows.push(getXmlRow(key, json[key]));
+		for(var i in rows){
+			var row = rows[i];
+			xmlRows.push(getXmlRow(row.tag, row.value));
 		}
 		return '<xml>\n'+xmlRows.join("\n")+'\n</xml>'
 	},
@@ -17,12 +18,26 @@ module.exports = {
 		}
 		return json;
 	},
+	sortAlphatically:function(request){
+		var rows = [];
+		for(var i in request){
+			if (request[i]!==''){
+				rows.push({tag:i,value:request[i]})
+			}
+		}
+		rows = rows.sort(function(a,b){
+			if (a.tag < b.tag) return -1;
+			if (a.tag > b.tag) return 1;
+			return 0;
+		})
+		return rows;
+	},
 	parse:function(xml){
 		return new Promise(function(resolve){
 			Xml2js.parseString(xml, function(err, result){
 				var json = {};
 				for(var key in result.xml){
-					json[key] = result.xml[key][0];
+					json[key] = result.xml[key][0].trim();
 				}
 				resolve(json);
 			});

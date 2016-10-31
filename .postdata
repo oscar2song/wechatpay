@@ -1,0 +1,14 @@
+<xml>
+	<appid>wxb9978f67bd7e8a9d</appid>
+		<body>SwiftCam WeChat Online Payment</body>
+			<detail>&lt;![CDATA[{"goods_detail":[{"goods_id":"hellokitty","goods_name":"Hello Kitty Mobile Stabilizer","quantity":1,"price":800,"body":"Shoot perfectly smooth video with lovely Hello Kitty"}]}]]&gt;</detail>
+				<mch_id>1387814602</mch_id>
+					<nonce_str>F2794FFAC4904574950CBDE9461683BE</nonce_str>
+						<notify_url>http://swiftcam.com/wechat/callback</notify_url>
+							<out_trade_no>1337</out_trade_no>
+								<product_id>hellokitty</product_id>
+									<spbill_create_ip>192.168.99.100</spbill_create_ip>
+										<total_fee>800</total_fee>
+											<trade_type>NATIVE</trade_type>
+												<sign>9A3EDB79C9CB44A9234F4CB8A9BCCD44</sign>
+												</xml>

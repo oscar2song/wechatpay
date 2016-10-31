@@ -1,6 +1,8 @@
 var Jsonxml = require('./jsonxml');
 var Request = require('request');
 var crypto = require('crypto');
+var Qr = require('qrcode-js');
+
 
 class WechatPayment{
 	constructor(config){
@@ -16,6 +18,7 @@ class WechatPayment{
 			spbill_create_ip:'',
 			total_fee:0,
 			trade_type:'NATIVE',
+			product_id:0,
 			detail:{goods_detail:[]}
 		}
 		if (config && config.appId) this.setAppId(config.appId);
@@ -45,6 +48,7 @@ class WechatPayment{
 		this.request.spbill_create_ip = ip;
 	}
 	addProduct(productId, productName, productDescription, quantity, price){
+		price *= 100;
 		var product = {
 			goods_id:productId,
 			goods_name:productName,
@@ -54,18 +58,28 @@ class WechatPayment{
 		};
 		this.request.detail.goods_detail.push(product)
 		this.request.total_fee += Number(price);
+		this.request.product_id = productId.substr(0,32);
+	}
+	onCallback(response){
+		return Jsonxml.parse(response)
 	}
 	getPaymentUrl(){
 		var paymentApi = this.paymentApi;
 		var request = this.request;
-		var wrappedRequest = Jsonxml.cdataWrap(request);
-		var signature = sign(wrappedRequest, this.apiKey);
-		request.sign = signature;
+		request = Jsonxml.sortAlphatically(request);
+		var signature = sign(request, this.apiKey);
+		request.push({tag:'sign','value':signature});
 		var xml = Jsonxml.toXml(request);
 		return new Promise(function(resolve, reject){
-			Request.post(paymentApi,{body:xml}, function(err, res, xml){
+			Request.post(paymentApi, {body:xml}, function(err, res, xml){
 				Jsonxml.parse(xml).then(function(result){
-					if (result.code_url) return resolve(code_url)
+					if (result.code_url){
+						var paymentUrl = {
+							url: result.code_url,
+							base64Image: getQrImage(result.code_url)
+						}
+						return resolve(paymentUrl)
+					}
 					reject(result)
 				});
 			})
@@ -73,30 +87,27 @@ class WechatPayment{
 	}
 }
 
-function md5(str){
-	return crypto.createHash('md5').update(str).digest('hex').toUpperCase();
+function getQrImage(url){
+	return Qr.toDataURL(url, 4);
 }
 
-function sign(request, apiKey){
-	var rows = [];
-	for(var i in request){
-		if (request[i]!==''){
-			rows.push({tag:i,value:request[i]})
-		}
-	}
-	rows = rows.sort(function(a,b){
-		if (a.tag < b.tag) return -1;
-		if (a.tag > b.tag) return 1;
-		return 0;
-	})
+function md5(str){
+	return crypto.createHash('md5').update(str, 'utf-8').digest('hex').toUpperCase();
+}
+
+function sign(rows, apiKey){
 	var mergedRows = [];
 	for(var i in rows){
 		var row = rows[i];
+		if (typeof row.value === 'object' && row.value !== null){
+			row.value = JSON.stringify(row.value);
+		}
 		mergedRows.push(row.tag+"="+row.value);
 	}
 	var mergedString = mergedRows.join('&');
 	mergedString += '&key='+apiKey;
-	return md5(mergedString);
+	var signature =  md5(mergedString);
+	return signature;
 }
 
 module.exports = WechatPayment;

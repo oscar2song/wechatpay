@@ -1,7 +1,7 @@
 # Overview
 1. Initialize the API with `appId`, `apiKey`, `merchantId`, `callbackUrl`
 2. Add products with this API
-3. `getPaymentUrl()` to get an Wechat Payment URL like `weixin://wxpay/s/An4baqw`
+3. Get Payment URL like `weixin://wxpay/s/An4baqw` for QR code payment
 
 
 # Usage
