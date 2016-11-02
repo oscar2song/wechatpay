@@ -1,13 +1,13 @@
 {
-  "name": "wechatpay",
+  "name": "wechatpayment",
   "version": "1.0.0",
-  "description": "",
+  "description": "Wechat Payment API, pass in your Products and get a Payment Url / QR Code for Wechat",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "roycwc@gmail.com",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.15.2",

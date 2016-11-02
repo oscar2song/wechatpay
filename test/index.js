@@ -6,7 +6,7 @@ app.use(bodyParser.text({type:"*/*"}));
 
 function demoRequest(){
 
-	var config = require('./config.json');
+	var config = require('../config.json');
 	var wechatPayment = new WechatPayment(config);
 
 	wechatPayment.setOrderNumber("1339")
@@ -26,7 +26,7 @@ app.get('/', function (req, res) {
 });
 
 app.post('/', function(req, res){
-	var config = require('./config.json');
+	var config = require('../config.json');
 	var wechatPayment = new WechatPayment(config);
 	wechatPayment.onCallback(req.body).then(function(result){
 		res.send(result);

@@ -45,6 +45,7 @@ class WechatPayment{
 		this.request.notify_url = callbackUrl;
 	}
 	setBuyerIp(ip){
+		ip = ip.replace('::1','127.0.0.1');
 		this.request.spbill_create_ip = ip;
 	}
 	addProduct(productId, productName, productDescription, quantity, price){
@@ -61,7 +62,12 @@ class WechatPayment{
 		this.request.product_id = productId.substr(0,32);
 	}
 	onCallback(response){
-		return Jsonxml.parse(response)
+		return Jsonxml.parse(response).then(function(responseObject){
+			if (!validate(responseObject, this.apiKey)){
+				return Promise.reject('Invalid callback')
+			}
+			return responseObject;
+		}.bind(this))
 	}
 	getPaymentUrl(){
 		var paymentApi = this.paymentApi;
@@ -85,6 +91,17 @@ class WechatPayment{
 			})
 		});
 	}
+}
+
+function validate(response, apiKey){
+	var fromSignature = response.sign;
+	response.sign = '';
+	var rows = Jsonxml.sortAlphatically(response);
+	var signature = sign(rows, apiKey);
+	if (signature == fromSignature){
+		return true;
+	}
+	return false;
 }
 
 function getQrImage(url){
