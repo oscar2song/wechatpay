@@ -1,6 +1,6 @@
 {
   "name": "wechatpayment",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Wechat Payment API, pass in your Products and get a Payment Url / QR Code for Wechat",
   "main": "index.js",
   "scripts": {

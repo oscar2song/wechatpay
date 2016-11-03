@@ -75,7 +75,7 @@ class WechatPayment{
 			return responseObject;
 		}.bind(this))
 	}
-	getPaymentUrl(){
+	getPaymentRequest(){
 		var paymentApi = this.paymentApi;
 		var request = clone(this.request);
 		request = Jsonxml.sortAlphatically(request);
@@ -85,13 +85,9 @@ class WechatPayment{
 		return new Promise(function(resolve, reject){
 			Request.post(paymentApi, {body:xml}, function(err, res, xml){
 				Jsonxml.parse(xml).then(function(result){
-					console.log(result);
 					if (result.code_url){
-						var paymentUrl = {
-							url: result.code_url,
-							base64Image: getQrImage(result.code_url)
-						}
-						return resolve(paymentUrl)
+						result.base64Image = getQrImage(result.code_url);
+						return resolve(result)
 					}
 					reject(result)
 				});
