@@ -75,7 +75,7 @@ class WechatPayment{
 			return responseObject;
 		}.bind(this))
 	}
-	sign(request){
+	getSignature(request){
 		request = Jsonxml.sortAlphatically(request);
 		return sign(request, this.apiKey);
 	}
