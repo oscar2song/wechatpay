@@ -2,12 +2,14 @@ var Jsonxml = require('./jsonxml');
 var Request = require('request');
 var crypto = require('crypto');
 var Qr = require('qrcode-js');
+var Memory = {};
 
 
 class WechatPayment{
 	constructor(config){
 		this.paymentApi = "https://api.mch.weixin.qq.com/pay/unifiedorder";
 		this.apiKey = '';
+		this.appSecret = '';
 		this.request = {
 			appid:'',
 			body:'',
@@ -23,6 +25,7 @@ class WechatPayment{
 		}
 		if (config && config.appId) this.setAppId(config.appId);
 		if (config && config.apiKey) this.setApiKey(config.apiKey);
+		if (config && config.appSecret) this.setAppSecret(config.appSecret);
 		if (config && config.merchantId) this.setMerchantId(config.merchantId);
 		if (config && config.callback) this.setCallback(config.callback);
 	}
@@ -31,6 +34,9 @@ class WechatPayment{
 	}
 	setApiKey(apiKey){
 		this.apiKey = apiKey;
+	}
+	setAppSecret(appSecret){
+		this.appSecret = appSecret;
 	}
 	setMerchantId(merchantId){
 		this.request.mch_id = merchantId;
@@ -71,7 +77,7 @@ class WechatPayment{
 	}
 	getPaymentUrl(){
 		var paymentApi = this.paymentApi;
-		var request = this.request;
+		var request = clone(this.request);
 		request = Jsonxml.sortAlphatically(request);
 		var signature = sign(request, this.apiKey);
 		request.push({tag:'sign','value':signature});
@@ -79,6 +85,7 @@ class WechatPayment{
 		return new Promise(function(resolve, reject){
 			Request.post(paymentApi, {body:xml}, function(err, res, xml){
 				Jsonxml.parse(xml).then(function(result){
+					console.log(result);
 					if (result.code_url){
 						var paymentUrl = {
 							url: result.code_url,
@@ -91,6 +98,46 @@ class WechatPayment{
 			})
 		});
 	}
+	getAccessToken(){
+		if (!Memory || !Memory.accessTokenInfo || isTokenExpired(Memory.accessTokenInfo)){
+			return new Promise(function(resolve){
+				var requestTime = new Date().getTime();
+				Request.get('https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='+this.request.appid+'&secret='+this.appSecret, function(err, res, body){
+					body = JSON.parse(body);
+					body.requestTime = requestTime;
+					Memory.accessTokenInfo = body;
+					resolve(body.access_token);
+				});
+			}.bind(this));
+		}
+		return Promise.resolve(Memory.accessTokenInfo.access_token);
+	}
+	getJsApiTicket(){
+		if (!Memory || !Memory.jsApiTicket || isTokenExpired(Memory.jsApiTicket)){
+			return this.getAccessToken().then(function(accessToken){
+				return new Promise(function(resolve){
+					var requestTime = new Date().getTime();
+					Request.get('https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token='+accessToken+'&type=jsapi',function(err, res, body){
+						body = JSON.parse(body);
+						body.requestTime = requestTime;
+						Memory.jsApiTicket = body;
+						resolve(body.ticket)
+					})
+				})
+			})
+		}
+		return Promise.resolve(Memory.jsApiTicket.ticket);
+	}
+}
+
+function isTokenExpired(accessTokenInfo){
+	var currentTime = new Date().getTime();
+	if (currentTime > accessTokenInfo.requestTime + Number(accessTokenInfo.expires_in)*1000) return true;
+	return false;
+}
+
+function clone(obj){
+	return JSON.parse(JSON.stringify(obj));
 }
 
 function validate(response, apiKey){
