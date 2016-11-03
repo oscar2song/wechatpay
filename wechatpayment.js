@@ -75,6 +75,10 @@ class WechatPayment{
 			return responseObject;
 		}.bind(this))
 	}
+	sign(request){
+		request = Jsonxml.sortAlphatically(request);
+		return sign(request, this.apiKey);
+	}
 	getPaymentRequest(){
 		var paymentApi = this.paymentApi;
 		var request = clone(this.request);
