@@ -47,6 +47,9 @@ class WechatPayment{
 	setPaymentTitle(title){
 		this.request.body = title;
 	}
+	setType(type){
+		this.request.trade_type = type;
+	}
 	setCallback(callbackUrl){
 		this.request.notify_url = callbackUrl;
 	}
@@ -77,7 +80,8 @@ class WechatPayment{
 	}
 	getSignature(request){
 		request = Jsonxml.sortAlphatically(request);
-		return sign(request, this.apiKey);
+		var signature = sign(request, this.apiKey);
+		return signature;
 	}
 	getPaymentRequest(){
 		var paymentApi = this.paymentApi;
